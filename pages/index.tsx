@@ -13,7 +13,6 @@ const Home: NextPage = () => {
       </Head>
     {/* Header */}
     <Header />
-
     {/* Feed */}
 
     {/* Modal */}
