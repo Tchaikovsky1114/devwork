@@ -1,5 +1,6 @@
 import React from 'react';
 import {DotsHorizontalIcon} from '@heroicons/react/solid'
+import {HeartIcon,ChatIcon,BookmarkIcon} from '@heroicons/react/outline'
 interface PostProps{
   id:number
   username:string
@@ -20,6 +21,15 @@ const Post = ({id,username,userImage,caption,image}:PostProps) => {
 
       {/* Post Image */}
       <img className="object-cover w-full" src={image} alt="post-image" />
+
+      {/* Post Buttons */}
+      <div className="flex justify-between w-full px-4 pt-4 pb-1">
+      <div className="flex space-x-4 items-center">
+      <HeartIcon className="btn" />
+      <ChatIcon className="btn" />
+      </div>
+      <BookmarkIcon className="btn" />
+      </div>
     </div>
   );
 };
