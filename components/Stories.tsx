@@ -3,7 +3,7 @@ import minifaker, { username } from 'minifaker'
 import 'minifaker/locales/en';
 import Story from './Story';
 
-interface storyUsersType {
+export interface storyUsersType {
   username:string;
   img: string;
   id: number
