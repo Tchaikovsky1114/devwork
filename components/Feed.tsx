@@ -1,4 +1,5 @@
 import React from 'react';
+import Posts from './Posts';
 import Stories from './Stories';
 
 const Feed = () => {
@@ -8,6 +9,7 @@ const Feed = () => {
         {/* stories */}
       <Stories />
         {/* posts */}
+        <Posts/>
       </section>
       <section>
         {/* Mini Prifile */}
