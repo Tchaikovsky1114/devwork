@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store';
 import { modalToggle } from '../store/slice/UploadSlice';
 import Modal from 'react-modal';
-import { CameraIcon,TrashIcon } from '@heroicons/react/outline';
+import { CameraIcon, TrashIcon } from '@heroicons/react/outline';
 import {
   CarouselProvider,
   Slider,
@@ -11,7 +11,15 @@ import {
   ButtonNext,
 } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
-import Image from 'next/image';
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { db, storage } from '../firebase';
+import { useSession } from 'next-auth/react';
+import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString } from 'firebase/storage';
+import { format } from 'node:path/win32';
+import { FolderDownloadIcon } from '@heroicons/react/solid';
+import { async } from '@firebase/util';
+
+
 
 const customStyles = {
   content: {
@@ -29,8 +37,10 @@ const UploadModal = () => {
   const { isOpen } = useAppSelector((state) => state.upload);
   const dispatch = useAppDispatch();
   const filePickerRef = useRef<HTMLInputElement>(null);
+  const captionRef = useRef<HTMLInputElement>(null);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-
+  const [loading, setLoading] = useState(false);
+  const {data: session} = useSession();
   const filePickerHandler = () => {
     filePickerRef.current!.click();
   };
@@ -54,10 +64,41 @@ const UploadModal = () => {
       }
     }
   };
-  console.log(selectedImages);
+
   const deletePreviewImageHandler = (i: number) => {
     setSelectedImages((prev) => prev.filter((_, index) => i !== index));
   };
+
+  const postHandler = async () => {
+    setLoading(true);
+    try{
+      const docRef = await addDoc(collection(db, 'posts'), {
+        username: session!.user.username,
+        caption: captionRef.current!.value,
+        profileImg: session?.user.image,
+        timestemp: serverTimestamp()
+      });
+      const imagesArray:string[] = [];
+      await selectedImages.map((image,index) => {
+        const imageRef = ref(storage, `posts/${docRef.id}/image${index}`)
+        
+        uploadString(imageRef, image,"data_url").then( async(snapshot:any) => {
+            const downloadURL =  await getDownloadURL(snapshot.ref)
+            console.log(downloadURL)
+            imagesArray.push(downloadURL)
+            await updateDoc(doc(db,"posts",docRef.id),{
+              image: imagesArray
+            })
+        })   
+      })
+    }catch(err){
+      const typedError = err as Error
+      console.log(typedError.message);
+    }finally{
+      setLoading(false);
+    }
+  };
+  
   return (
     <>
       {isOpen && (
@@ -88,7 +129,10 @@ const UploadModal = () => {
                       src={item}
                       alt={index + ''}
                     />
-                    <button className="absolute top-1 right-1 rounded-full shadow-md" onClick={() => deletePreviewImageHandler(index)}>
+                    <button
+                      className="absolute top-1 right-1 rounded-full shadow-md"
+                      onClick={() => deletePreviewImageHandler(index)}
+                    >
                       <TrashIcon className="w-6 bg-rose-200 rounded-full p-1 " />
                     </button>
                   </Slide>
@@ -116,11 +160,16 @@ const UploadModal = () => {
                 className="w-full border-none text-center focus:ring-blue-200 rounded-md"
                 maxLength={150}
                 placeholder="사진과 함께 전송할 메세지를 입력해주세요."
+                ref={captionRef}
               />
             </div>
           </div>
 
-          <button className="mt-12 w-full bg-indigo-500 text-white p-2 shadow-md hover:brightness-125 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100">
+          <button
+            disabled={selectedImages.length === 0 || loading}
+            className="mt-12 w-full bg-indigo-500 text-white p-2 shadow-md hover:brightness-125 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100"
+            onClick={postHandler}
+          >
             Upload
           </button>
         </Modal>
