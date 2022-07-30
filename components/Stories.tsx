@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import minifaker, { username } from 'minifaker'
+import minifaker from 'minifaker'
 import 'minifaker/locales/en';
 import Story from './Story';
 import {useSession} from "next-auth/react"

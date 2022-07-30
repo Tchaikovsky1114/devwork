@@ -4,11 +4,14 @@ import DevWorkLogo from '../public/devwork-logo.png';
 import DevWorkMiniLogo from '../public/devwork-minilogo.png';
 import { SearchIcon, PlusCircleIcon, HomeIcon } from '@heroicons/react/solid';
 import { useSession, signIn, signOut } from 'next-auth/react';
+import { useAppDispatch, useAppSelector } from '../store';
+import { modalToggle } from '../store/slice/UploadSlice';
 
 export default function Header() {
   const { data: session } = useSession();
-  console.log(session);
-
+  
+  const dispatch = useAppDispatch()
+  const {isOpen} = useAppSelector((state) => state.upload)
 
   const signInHandler = () => {
     signIn()
@@ -16,6 +19,10 @@ export default function Header() {
 
   const signOutHandler = () => {
     signOut()
+  }
+
+  const modalToggleHandler = () => {
+    dispatch(modalToggle({isOpen: !isOpen}))
   }
 
   return (
@@ -59,7 +66,7 @@ export default function Header() {
           <HomeIcon className="hidden md:inline-flex h-6 cursor-pointer hover:scale-125 transition-transform duration-200 ease-out" />
           {session ? (
             <>
-              <PlusCircleIcon className="h-6 cursor-pointer hover:scale-125 transition-transform duration-200 ease-out" />
+              <PlusCircleIcon onClick={modalToggleHandler} className="h-6 cursor-pointer hover:scale-125 transition-transform duration-200 ease-out" />
               <div className="w-6 h-6 ring-yellow-400 ring rounded-full cursor-pointer relative overflow-hidden ring-offset-2">
               <Image
               onClick={signOutHandler}
