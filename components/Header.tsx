@@ -6,10 +6,12 @@ import { SearchIcon, PlusCircleIcon, HomeIcon } from '@heroicons/react/solid';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useAppDispatch, useAppSelector } from '../store';
 import { modalToggle } from '../store/slice/UploadSlice';
+import { useRouter } from 'next/router';
+
 
 export default function Header() {
   const { data: session } = useSession();
-  
+  const router = useRouter();
   const dispatch = useAppDispatch()
   const {isOpen} = useAppSelector((state) => state.upload)
 
@@ -24,7 +26,9 @@ export default function Header() {
   const modalToggleHandler = () => {
     dispatch(modalToggle({isOpen: !isOpen}))
   }
-
+  const backToHomeHandler = () => {
+    router.push("/")
+  }
   return (
     <div className="shadow-sm border-b sticky top-0 py-2 bg-white z-30">
       <div className="flex items-center justify-between max-w-6xl mx-4 xl:mx-auto">
@@ -32,11 +36,11 @@ export default function Header() {
 
         <div className="cursor-pointer h-24 w-24 relative hidden lg:inline-grid">
           <Image
-          
             src={DevWorkLogo}
             alt="logo"
             layout="fill"
             className="object-contain"
+            onClick={backToHomeHandler}
           />
         </div>
 
@@ -46,6 +50,7 @@ export default function Header() {
             alt="logo"
             layout="fill"
             className="object-contain"
+            onClick={backToHomeHandler}
           />
         </div>
 
@@ -63,7 +68,7 @@ export default function Header() {
 
         {/* right */}
         <div className="flex items-center space-x-4">
-          <HomeIcon className="hidden md:inline-flex h-6 cursor-pointer hover:scale-125 transition-transform duration-200 ease-out" />
+          <HomeIcon  onClick={backToHomeHandler} className="hidden md:inline-flex h-6 cursor-pointer hover:scale-125 transition-transform duration-200 ease-out" />
           {session ? (
             <>
               <PlusCircleIcon onClick={modalToggleHandler} className="h-6 cursor-pointer hover:scale-125 transition-transform duration-200 ease-out" />
