@@ -7,11 +7,13 @@ import {
   ChatIcon,
   BookmarkIcon,
   EmojiHappyIcon,
+  
 } from '@heroicons/react/outline';
+import {HeartIcon as HeartIconFilled} from '@heroicons/react/solid';
 import { CarouselProvider, Slider, Slide } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
 import { useSession } from 'next-auth/react';
-import {  addDoc,collection,DocumentData,onSnapshot,orderBy,query,serverTimestamp} from 'firebase/firestore';
+import {  addDoc,collection,deleteDoc,doc,DocumentData,onSnapshot,orderBy,query,serverTimestamp, setDoc} from 'firebase/firestore';
 import { db } from '../firebase';
 import Moment from 'react-moment';
 
@@ -24,11 +26,17 @@ interface PostProps {
   caption: string;
 }
 
+interface LikeType {
+  id: string;
+}
+
 const Post = ({ id, username, userImage, caption, image }: PostProps) => {
   console.log(id);
   const { data: session } = useSession();
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState<DocumentData[]>([]);
+  const [like, setLike] = useState(false);
+  const [likes, setLikes] = useState<LikeType[]>([]);
   const commentHandler = (e: ChangeEvent<HTMLInputElement>) => {
     setComment(e.currentTarget.value);
   };
@@ -47,6 +55,19 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
     });
   };
 
+  const likeHandler = async () => {
+    if(!session) return;
+    if(like){
+      await deleteDoc(doc(db,'posts',id,'likes',session.user.uid))
+    }else{
+      await setDoc(doc(db,'posts',id,'likes',session.user.uid),{
+        username: session.user.username
+      })
+    }
+    
+  }
+
+
   useEffect(() => {
     const unsubscribe = onSnapshot(
       query(
@@ -58,6 +79,26 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
       }
     );
   }, [id]);
+
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'posts', id, 'likes'), (snapshot) => {
+      setLikes(snapshot.docs);
+    })
+  },[])
+
+  useEffect(() => {
+    if(!session) return;
+    setLike(
+      likes.findIndex(like => like.id === session.user.uid) !== -1
+    )
+  }, [likes])
+
+
+
+
+
+
 
   return (
     <div className="bg-white my-8 border rounded-md">
@@ -102,7 +143,7 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
       {session && (
         <div className="flex justify-between w-full px-4 pt-4 pb-1">
           <div className="flex space-x-4 items-center">
-            <HeartIcon className="btn" />
+            {like ? <HeartIconFilled onClick={likeHandler}  className="text-red-400 btn" /> : <HeartIcon onClick={likeHandler} className="text-red-400 btn" />}
             <ChatIcon className="btn" />
           </div>
           <BookmarkIcon className="btn" />
@@ -110,13 +151,16 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
       )}
 
       {/* Post Comments */}
+      <p className="p-4 font-bold text-md">{likes.length < 1 ? "" : `${likes.length} Likes`} </p>
       <p className="p-4 truncate">
+        
         <span className="font-bold mr-2">{username}</span>
         {caption}
       </p>
 
       {comments.length > 0 && (
         <>
+        <p>{}</p>
          <p className="font-bold text-xs py-2 border-b-2">{comments.length > 0 ?`${comments.length}개의 댓글` : "" }</p>
         <div className=" mx-10 max-h-32 overflow-y-scroll scrollbar-none pt-2">
          
