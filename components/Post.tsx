@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
-import React, { ChangeEvent, FormEvent, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { DotsHorizontalIcon } from '@heroicons/react/solid';
 import {
   HeartIcon,
@@ -11,17 +11,10 @@ import {
 import { CarouselProvider, Slider, Slide } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
 import { useSession } from 'next-auth/react';
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  serverTimestamp,
-  setDoc,
-  where,
-} from 'firebase/firestore';
+import {  addDoc,collection,DocumentData,onSnapshot,orderBy,query,serverTimestamp} from 'firebase/firestore';
 import { db } from '../firebase';
+import Moment from 'react-moment';
+
 
 interface PostProps {
   id: string;
@@ -32,16 +25,16 @@ interface PostProps {
 }
 
 const Post = ({ id, username, userImage, caption, image }: PostProps) => {
-  console.log(id)
+  console.log(id);
   const { data: session } = useSession();
   const [comment, setComment] = useState('');
-
+  const [comments, setComments] = useState<DocumentData[]>([]);
   const commentHandler = (e: ChangeEvent<HTMLInputElement>) => {
     setComment(e.currentTarget.value);
   };
 
   const submitCommentHandler = async (e: FormEvent<HTMLFormElement>) => {
-    if(!session) return;
+    if (!session) return;
     e.preventDefault();
     setComment('');
     const commentToSend = comment;
@@ -50,9 +43,21 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
       username: session.user.username,
       userImage: session.user.image,
       timestamp: serverTimestamp(),
-      like: 0
+      like: 0,
     });
   };
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      query(
+        collection(db, 'posts', id, 'comments'),
+        orderBy('timestamp', 'desc')
+      ),
+      (snapshot) => {
+        setComments(snapshot.docs);
+      }
+    );
+  }, [id]);
 
   return (
     <div className="bg-white my-8 border rounded-md">
@@ -68,6 +73,7 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
       </div>
 
       <div>{image?.length <= 1 ? '' : `총 ${image?.length}장 게시됨`}</div>
+
       {/* Post Image */}
       <CarouselProvider
         naturalSlideWidth={300}
@@ -102,11 +108,34 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
           <BookmarkIcon className="btn" />
         </div>
       )}
+
       {/* Post Comments */}
       <p className="p-4 truncate">
         <span className="font-bold mr-2">{username}</span>
         {caption}
       </p>
+
+      {comments.length > 0 && (
+        <>
+         <p className="font-bold text-xs py-2 border-b-2">{comments.length > 0 ?`${comments.length}개의 댓글` : "" }</p>
+        <div className=" mx-10 max-h-32 overflow-y-scroll scrollbar-none pt-2">
+         
+          {comments.map(comment => (
+          <div key={comment.id} className="flex items-center space-x-2 mb-3 ">
+            <img className="h-7 rounded-full object-cover" src={comment.data().userImage} alt={comment.data().username} />
+            <p className="font-semibold pr-2">{comment.data().username}</p>
+            <p className="flex-1 truncate">{comment.data().comment}</p>
+            <p className='text-[4px]'>{comment.data().like}</p>
+            <Moment fromNow className='text-xs'>{comment.data().timestamp?.toDate()}</Moment>
+            
+          </div>
+          )
+          )}
+        </div>
+        </>
+      )}
+
+
       {/* Post Input */}
       {session && (
         <form
