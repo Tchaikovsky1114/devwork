@@ -1,4 +1,6 @@
-import React from 'react';
+/* eslint-disable @next/next/no-img-element */
+
+import React, { ChangeEvent, FormEvent, useState } from 'react';
 import { DotsHorizontalIcon } from '@heroicons/react/solid';
 import {
   HeartIcon,
@@ -8,11 +10,21 @@ import {
 } from '@heroicons/react/outline';
 import { CarouselProvider, Slider, Slide } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
-import {useSession} from 'next-auth/react'
-
+import { useSession } from 'next-auth/react';
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  serverTimestamp,
+  setDoc,
+  where,
+} from 'firebase/firestore';
+import { db } from '../firebase';
 
 interface PostProps {
-  id: number;
+  id: string;
   username: string;
   userImage: string;
   image: string[];
@@ -20,7 +32,28 @@ interface PostProps {
 }
 
 const Post = ({ id, username, userImage, caption, image }: PostProps) => {
-  const {data: session} = useSession();
+  console.log(id)
+  const { data: session } = useSession();
+  const [comment, setComment] = useState('');
+
+  const commentHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    setComment(e.currentTarget.value);
+  };
+
+  const submitCommentHandler = async (e: FormEvent<HTMLFormElement>) => {
+    if(!session) return;
+    e.preventDefault();
+    setComment('');
+    const commentToSend = comment;
+    await addDoc(collection(db, 'posts', id, 'comments'), {
+      comment: commentToSend,
+      username: session.user.username,
+      userImage: session.user.image,
+      timestamp: serverTimestamp(),
+      like: 0
+    });
+  };
+
   return (
     <div className="bg-white my-8 border rounded-md">
       {/* Header */}
@@ -34,7 +67,7 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
         <DotsHorizontalIcon className="h-5" />
       </div>
 
-      <div>{image?.length  <= 1 ? "" :`총 ${image?.length}장 게시됨`}</div>
+      <div>{image?.length <= 1 ? '' : `총 ${image?.length}장 게시됨`}</div>
       {/* Post Image */}
       <CarouselProvider
         naturalSlideWidth={300}
@@ -45,7 +78,7 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
           {image.map((item, index) => (
             <Slide
               className="flex h-full justify-center items-center relative"
-              key={index + ''}
+              key={index}
               index={index}
             >
               <img
@@ -60,31 +93,43 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
 
       {/* Post Buttons */}
 
-      {session &&
-      <div className="flex justify-between w-full px-4 pt-4 pb-1">
-        <div className="flex space-x-4 items-center">
-          <HeartIcon className="btn" />
-          <ChatIcon className="btn" />
+      {session && (
+        <div className="flex justify-between w-full px-4 pt-4 pb-1">
+          <div className="flex space-x-4 items-center">
+            <HeartIcon className="btn" />
+            <ChatIcon className="btn" />
+          </div>
+          <BookmarkIcon className="btn" />
         </div>
-        <BookmarkIcon className="btn" />
-      </div>
-      }
+      )}
       {/* Post Comments */}
       <p className="p-4 truncate">
         <span className="font-bold mr-2">{username}</span>
         {caption}
       </p>
       {/* Post Input */}
-      {session &&
-      <form className="flex items-center p-4 space-x-2">
-        <EmojiHappyIcon className="w-8 h-8" />
-        <input
-          className="border-none flex-1 focus:outline-blue-300 focus:ring-0"
-          type="text"
-          placeholder="Enter your comment..."
-        />
-        <button className="text-blue-400 font-bold">Post</button>
-      </form>}
+      {session && (
+        <form
+          onSubmit={submitCommentHandler}
+          className="flex items-center p-4 space-x-2"
+        >
+          <EmojiHappyIcon className="w-8 h-8" />
+          <input
+            value={comment || ''}
+            className="border-none flex-1 focus:outline-blue-300 focus:ring-0"
+            type="text"
+            placeholder="Enter your comment..."
+            onChange={commentHandler}
+          />
+          <button
+            disabled={!comment.trim()}
+            type="submit"
+            className="text-blue-400 font-bold disabled:cursor-not-allowed disabled:text-gray-400"
+          >
+            Post
+          </button>
+        </form>
+      )}
     </div>
   );
 };

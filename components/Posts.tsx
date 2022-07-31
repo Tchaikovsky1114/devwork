@@ -26,10 +26,10 @@ const Posts = () => {
 
   return (
     <div>
-      {posts.map((post) => (
+      {posts.map((post,index) => (
         <Post
-          key={post.data().id}
-          id={post.data().id}
+          key={index}
+          id={post.id}
           username={post.data().username}
           userImage={post.data().profileImg}
           image={post.data().image}
