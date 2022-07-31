@@ -1,11 +1,19 @@
 import React from 'react';
 import { DotsHorizontalIcon } from '@heroicons/react/solid';
-import { HeartIcon, ChatIcon, BookmarkIcon ,EmojiHappyIcon} from '@heroicons/react/outline';
+import {
+  HeartIcon,
+  ChatIcon,
+  BookmarkIcon,
+  EmojiHappyIcon,
+} from '@heroicons/react/outline';
+import { CarouselProvider, Slider, Slide } from 'pure-react-carousel';
+import 'pure-react-carousel/dist/react-carousel.es.css';
+
 interface PostProps {
   id: number;
   username: string;
   userImage: string;
-  image: string;
+  image: string[];
   caption: string;
 }
 
@@ -23,8 +31,29 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
         <DotsHorizontalIcon className="h-5" />
       </div>
 
+      <div>{image?.length  <= 1 ? "" :`총 ${image?.length}장 게시됨`}</div>
       {/* Post Image */}
-      <img className="object-cover w-full" src={image} alt="post-image" />
+      <CarouselProvider
+        naturalSlideWidth={300}
+        naturalSlideHeight={190}
+        totalSlides={image.length}
+      >
+        <Slider className="w-full">
+          {image.map((item, index) => (
+            <Slide
+              className="flex h-full justify-center items-center relative"
+              key={index + ''}
+              index={index}
+            >
+              <img
+                className="object-cover w-full"
+                src={item}
+                alt="post-image"
+              />
+            </Slide>
+          ))}
+        </Slider>
+      </CarouselProvider>
 
       {/* Post Buttons */}
       <div className="flex justify-between w-full px-4 pt-4 pb-1">
@@ -41,9 +70,13 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
         {caption}
       </p>
       {/* Post Input */}
-      <form className='flex items-center p-4 space-x-2'>
+      <form className="flex items-center p-4 space-x-2">
         <EmojiHappyIcon className="w-8 h-8" />
-        <input className="border-none flex-1 focus:outline-blue-300 focus:ring-0" type="text" placeholder="Enter your comment..." />
+        <input
+          className="border-none flex-1 focus:outline-blue-300 focus:ring-0"
+          type="text"
+          placeholder="Enter your comment..."
+        />
         <button className="text-blue-400 font-bold">Post</button>
       </form>
     </div>

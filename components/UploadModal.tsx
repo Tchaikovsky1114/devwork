@@ -7,17 +7,14 @@ import {
   CarouselProvider,
   Slider,
   Slide,
-  ButtonBack,
-  ButtonNext,
+
 } from 'pure-react-carousel';
 import 'pure-react-carousel/dist/react-carousel.es.css';
+
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db, storage } from '../firebase';
 import { useSession } from 'next-auth/react';
 import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString } from 'firebase/storage';
-import { format } from 'node:path/win32';
-import { FolderDownloadIcon } from '@heroicons/react/solid';
-import { async } from '@firebase/util';
 
 
 
@@ -96,6 +93,9 @@ const UploadModal = () => {
       console.log(typedError.message);
     }finally{
       setLoading(false);
+      dispatch(modalToggle({ isOpen: !isOpen }))
+      alert("포스트가 전송되었습니다!")
+      setSelectedImages(() => [])
     }
   };
   
@@ -110,6 +110,9 @@ const UploadModal = () => {
             dispatch(modalToggle({ isOpen: !isOpen }));
           }}
         >
+
+
+
           {selectedImages && (
             <CarouselProvider
               className="mt-12"
