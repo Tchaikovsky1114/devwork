@@ -1,13 +1,14 @@
 import React from 'react';
+import { useAppSelector } from '../store';
 import MiniProfile from './MiniProfile';
 import Posts from './Posts';
 import Stories from './Stories';
 import Suggestions from './Suggestions';
-import { useSession } from 'next-auth/react';
+
 const Feed = () => {
-  const {data: session} = useSession()
+const currentUser = useAppSelector(state => state.user)
   return (
-    <main className={`grid ${session ? "grid-cols-1 md:grid-cols-3 md:max-w-6xl mx-auto" : "grid-cols-1 md:grid-cols-2 md:max-w-3xl mx-auto" } `}>
+    <main className={`grid ${currentUser.user!.username ? "grid-cols-1 md:grid-cols-3 md:max-w-6xl mx-auto" : "grid-cols-1 md:grid-cols-2 md:max-w-3xl mx-auto" } `}>
       <section className="md:col-span-2">
         {/* stories */}
         <Stories />

@@ -13,7 +13,7 @@ import 'pure-react-carousel/dist/react-carousel.es.css';
 
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db, storage } from '../firebase';
-import { useSession } from 'next-auth/react';
+
 import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString } from 'firebase/storage';
 
 
@@ -32,12 +32,13 @@ Modal.setAppElement('#__next');
 
 const UploadModal = () => {
   const { isOpen } = useAppSelector((state) => state.upload);
+  const currentUser = useAppSelector(state => state.user);
   const dispatch = useAppDispatch();
   const filePickerRef = useRef<HTMLInputElement>(null);
   const captionRef = useRef<HTMLInputElement>(null);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const {data: session} = useSession();
+  
   const filePickerHandler = () => {
     filePickerRef.current!.click();
   };
@@ -70,9 +71,9 @@ const UploadModal = () => {
     setLoading(true);
     try{
       const docRef = await addDoc(collection(db, 'posts'), {
-        username: session!.user.username,
+        username: currentUser!.user.username,
         caption: captionRef.current!.value,
-        profileImg: session?.user.image,
+        profileImg: currentUser?.user.userImage,
         timestemp: serverTimestamp()
       });
       const imagesArray:string[] = [];

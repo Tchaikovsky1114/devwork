@@ -3,13 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import Post from './Post';
 
-interface PostType {
-  id: number
-  username: string
-  userImage: string
-  image : string[]
-  caption: string
-}
+
 
 const Posts = () => {
   const [posts, setPosts] = useState<DocumentData[]>([]);
