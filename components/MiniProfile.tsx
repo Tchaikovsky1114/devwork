@@ -25,6 +25,7 @@ const MiniProfile = () => {
   const dispatch = useAppDispatch()
   const navigate = useRouter()
   const signOutHandler = async () => {
+    await signOut(auth);
     await nextSignOut()
     
   }

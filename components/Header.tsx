@@ -23,8 +23,8 @@ export default function Header() {
   };
 
   const signOutHandler = async () => {
-    
-    nextSignOut()
+    await signOut(auth)
+    await nextSignOut()
     
   };
 
