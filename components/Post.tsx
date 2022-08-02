@@ -33,7 +33,6 @@ interface LikeType {
 
 const Post = ({ id, username, userImage, caption, image }: PostProps) => {
   
-  console.log(image?.length);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState<DocumentData[]>([]);
   const [like, setLike] = useState(false);
