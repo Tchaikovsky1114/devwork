@@ -15,6 +15,7 @@ import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/fi
 import { db, storage } from '../firebase';
 
 import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString } from 'firebase/storage';
+import { useRouter } from 'next/router';
 
 
 
@@ -38,7 +39,7 @@ const UploadModal = () => {
   const captionRef = useRef<HTMLInputElement>(null);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  
+  const navigate = useRouter();
   const filePickerHandler = () => {
     filePickerRef.current!.click();
   };
@@ -89,6 +90,7 @@ const UploadModal = () => {
             })
         })   
       })
+      navigate.push('/')
     }catch(err){
       const typedError = err as Error
       console.log(typedError.message);

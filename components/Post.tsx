@@ -88,14 +88,14 @@ const Post = ({ id, username, userImage, caption, image }: PostProps) => {
       setLikes(snapshot.docs);
     })
     return () => unsubscribe();
-  },[])
+  },[id])
 
   useEffect(() => {
     if(!currentUser) return;
     setLike(
       likes.findIndex(like => like.id === currentUser.user!.uid) !== -1
     )
-  }, [likes])
+  }, [likes,currentUser])
 
 
   return (
